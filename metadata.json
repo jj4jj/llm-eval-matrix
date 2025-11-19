@@ -1,0 +1,5 @@
+{
+  "name": "EvalMatrix - LLM Evaluation Platform",
+  "description": "A comprehensive platform for evaluating OpenAI-compatible LLMs using custom datasets and metrics. Features dataset management, model configuration, parallel evaluation execution, and visual benchmarking.",
+  "requestFramePermissions": []
+}
