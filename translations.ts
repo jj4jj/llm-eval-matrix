@@ -56,6 +56,8 @@ export const translations = {
     'models.namePlaceholder': 'My GPT-4',
     'models.saveBtn': 'Save Model',
     'models.noModels': 'No models configured.',
+    'models.validationError': 'Please fill in all required fields. If Display Name is empty, Model ID will be used.',
+    'models.saved': 'Model saved successfully!',
 
     // Evaluation
     'eval.title': 'New Evaluation Run',
@@ -156,6 +158,8 @@ export const translations = {
     'models.namePlaceholder': '我的 GPT-4',
     'models.saveBtn': '保存模型',
     'models.noModels': '未配置任何模型。',
+    'models.validationError': '请填写所有必填字段。如果显示名称为空，将默认使用模型 ID。',
+    'models.saved': '模型保存成功！',
 
     // Evaluation
     'eval.title': '新建评测任务',

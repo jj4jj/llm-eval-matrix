@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppStore } from '../context/AppContext';
 import { PRESETS_MODELS } from '../constants';
@@ -24,7 +25,7 @@ export const Models: React.FC = () => {
 
   const fetchModels = async () => {
     if (!newModel.baseUrl || !newModel.apiKey) {
-        alert("Please enter Base URL and API Key");
+        alert(t('models.validationError'));
         return;
     }
     setIsLoadingList(true);
@@ -39,16 +40,27 @@ export const Models: React.FC = () => {
   };
 
   const handleAddModel = () => {
-    if (!newModel.name || !newModel.apiKey || !newModel.modelId) return;
+    // Auto-fill Display Name if empty but Model ID exists
+    const displayName = newModel.name?.trim() || newModel.modelId;
+
+    if (!displayName || !newModel.apiKey || !newModel.modelId || !newModel.baseUrl) {
+        alert(t('models.validationError'));
+        return;
+    }
+
     addModel({
         id: uuidv4(),
-        name: newModel.name,
+        name: displayName,
         provider: newModel.provider as any,
-        baseUrl: newModel.baseUrl!,
+        baseUrl: newModel.baseUrl,
         apiKey: newModel.apiKey,
         modelId: newModel.modelId
     });
+    
+    // Provide visual feedback or simply clear the relevant fields
+    // We preserve BaseURL and API Key for convenience when adding multiple models from same provider
     setNewModel(prev => ({ ...prev, name: '', modelId: '' })); 
+    // Optional: alert(t('models.saved'));
   };
 
   return (
@@ -131,6 +143,7 @@ export const Models: React.FC = () => {
                         onChange={e => setNewModel({...newModel, name: e.target.value})}
                         placeholder={t('models.namePlaceholder')}
                     />
+                    <p className="text-xs text-slate-400 mt-1">Optional. Defaults to Model ID.</p>
                 </div>
 
                 <button 
