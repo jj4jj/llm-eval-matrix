@@ -18,21 +18,21 @@ interface AppState {
 
 const AppContext = createContext<AppState | undefined>(undefined);
 
+// Helper to safely parse JSON from localStorage
+const safeParse = <T,>(key: string, fallback: T): T => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch (error) {
+    console.warn(`Failed to parse ${key} from localStorage`, error);
+    return fallback;
+  }
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [datasets, setDatasets] = useState<Dataset[]>(() => {
-    const saved = localStorage.getItem('datasets');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [models, setModels] = useState<LLMModel[]>(() => {
-    const saved = localStorage.getItem('models');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [runs, setRuns] = useState<EvaluationRun[]>(() => {
-    const saved = localStorage.getItem('runs');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [datasets, setDatasets] = useState<Dataset[]>(() => safeParse('datasets', []));
+  const [models, setModels] = useState<LLMModel[]>(() => safeParse('models', []));
+  const [runs, setRuns] = useState<EvaluationRun[]>(() => safeParse('runs', []));
 
   const [language, setLanguageState] = useState<Language>(() => {
     return (localStorage.getItem('language') as Language) || 'en';
@@ -50,7 +50,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const t = (key: string): string => {
     // @ts-ignore
-    return translations[language][key] || key;
+    return translations[language]?.[key] || key;
   };
 
   const addDataset = (ds: Dataset) => setDatasets(prev => [ds, ...prev]);
