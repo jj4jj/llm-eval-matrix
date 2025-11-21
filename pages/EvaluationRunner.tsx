@@ -6,6 +6,7 @@ import { MetricType, EvaluationRun, EvaluationResultItem } from '../types';
 import { METRIC_LABELS, DEFAULT_SYSTEM_PROMPT, METRIC_TOOLTIPS } from '../constants';
 import { generateCompletion } from '../services/llm';
 import { calculateScores } from '../services/scoring';
+import { ParallelExecutor } from '../services/parallelExecutor';
 import { v4 as uuidv4 } from 'uuid';
 import { InfoTooltip } from '../components/InfoTooltip';
 
@@ -64,56 +65,106 @@ export const EvaluationRunner: React.FC = () => {
     addRun(newRun);
     navigate('/results'); // Redirect immediately to results to watch progress
 
-    // Start Async Processing
+    // Start Async Processing with Parallel Execution
     const judgeModel = models.find(m => m.id === judgeModelId);
     let completedCount = 0;
     const allResults: EvaluationResultItem[] = [];
 
+    // Create parallel executors for each model based on their maxConcurrency setting
+    const modelExecutors = new Map<string, ParallelExecutor>();
+    selectedModelIds.forEach(modelId => {
+        const model = models.find(m => m.id === modelId);
+        if (model) {
+            modelExecutors.set(modelId, new ParallelExecutor(model.maxConcurrency || 16));
+        }
+    });
+
+    // Create all evaluation tasks
+    const evaluationTasks: Promise<void>[] = [];
+
     for (const item of dataset.items) {
         for (const modelId of selectedModelIds) {
             const model = models.find(m => m.id === modelId);
-            if (!model) continue;
+            const executor = modelExecutors.get(modelId);
+            
+            if (!model || !executor) continue;
 
-            const messages = [
-                { role: 'system' as const, content: systemPrompt },
-                { role: 'user' as const, content: typeof item.input === 'string' ? item.input : JSON.stringify(item.input) }
-            ];
+            const task = async () => {
+                const messages = [
+                    { role: 'system' as const, content: systemPrompt },
+                    { role: 'user' as const, content: typeof item.input === 'string' ? item.input : JSON.stringify(item.input) }
+                ];
 
-            // 1. Generate
-            const { content, latency } = await generateCompletion(model, messages);
+                try {
+                    // 1. Generate
+                    const { content, latency } = await generateCompletion(model, messages);
 
-            // 2. Score
-            const scores = await calculateScores(
-                typeof item.input === 'string' ? item.input : JSON.stringify(item.input),
-                content,
-                item.reference,
-                selectedMetrics,
-                judgeModel,
-                customCode
-            );
+                    // 2. Score
+                    const scores = await calculateScores(
+                        typeof item.input === 'string' ? item.input : JSON.stringify(item.input),
+                        content,
+                        item.reference,
+                        selectedMetrics,
+                        judgeModel,
+                        customCode
+                    );
 
-            const resultItem: EvaluationResultItem = {
-                itemId: item.id,
-                modelId: model.id,
-                input: typeof item.input === 'string' ? item.input : JSON.stringify(item.input),
-                output: content,
-                reference: item.reference,
-                scores,
-                latencyMs: latency
+                    const resultItem: EvaluationResultItem = {
+                        itemId: item.id,
+                        modelId: model.id,
+                        input: typeof item.input === 'string' ? item.input : JSON.stringify(item.input),
+                        output: content,
+                        reference: item.reference,
+                        scores,
+                        latencyMs: latency
+                    };
+
+                    // Add result and update progress
+                    allResults.push(resultItem);
+                    completedCount++;
+                    
+                    // Update progress
+                    updateRun(runId, {
+                        progress: completedCount,
+                        results: [...allResults] // Incremental update
+                    });
+                } catch (error) {
+                    console.error(`Evaluation failed for item ${item.id} with model ${model.name}:`, error);
+                    
+                    // Add error result
+                    const errorResult: EvaluationResultItem = {
+                        itemId: item.id,
+                        modelId: model.id,
+                        input: typeof item.input === 'string' ? item.input : JSON.stringify(item.input),
+                        output: `[ERROR]: ${(error as Error).message}`,
+                        reference: item.reference,
+                        scores: Object.fromEntries(selectedMetrics.map(m => [m, 0])),
+                        latencyMs: 0
+                    };
+                    
+                    allResults.push(errorResult);
+                    completedCount++;
+                    
+                    updateRun(runId, {
+                        progress: completedCount,
+                        results: [...allResults]
+                    });
+                }
             };
 
-            allResults.push(resultItem);
-            completedCount++;
-            
-            // Update progress
-            updateRun(runId, {
-                progress: completedCount,
-                results: [...allResults] // Incremental update
-            });
+            // Queue the task for parallel execution
+            evaluationTasks.push(executor.execute(task));
         }
     }
 
-    updateRun(runId, { status: 'completed' });
+    // Wait for all tasks to complete
+    try {
+        await Promise.all(evaluationTasks);
+        updateRun(runId, { status: 'completed' });
+    } catch (error) {
+        console.error('Evaluation batch failed:', error);
+        updateRun(runId, { status: 'failed' });
+    }
   };
 
   return (

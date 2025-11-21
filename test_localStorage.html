@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test LocalStorage</title>
+</head>
+<body>
+    <h1>LocalStorage Test</h1>
+    <div id="output"></div>
+    <script>
+        const output = document.getElementById('output');
+        
+        // Check localStorage data
+        const datasets = localStorage.getItem('datasets');
+        const models = localStorage.getItem('models');
+        const runs = localStorage.getItem('runs');
+        
+        output.innerHTML = `
+            <h2>Datasets:</h2>
+            <pre>${datasets || 'No datasets found'}</pre>
+            <h2>Models:</h2>
+            <pre>${models || 'No models found'}</pre>
+            <h2>Runs:</h2>
+            <pre>${runs || 'No runs found'}</pre>
+        `;
+        
+        console.log('LocalStorage data:', { datasets, models, runs });
+    </script>
+</body>
+</html>

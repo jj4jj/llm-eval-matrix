@@ -6,6 +6,7 @@ export interface LLMModel {
   baseUrl: string;
   apiKey: string;
   modelId: string; // e.g., "gpt-4", "google/gemini-flash-1.5"
+  maxConcurrency?: number; // Maximum parallel requests, default 16
 }
 
 export interface DatasetItem {

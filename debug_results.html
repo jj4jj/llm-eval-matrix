@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Results Page</title>
+</head>
+<body>
+    <h1>Debug Results Page</h1>
+    <button onclick="createTestData()">Create Test Data in LocalStorage</button>
+    <button onclick="checkLocalStorage()">Check LocalStorage</button>
+    <button onclick="clearLocalStorage()">Clear LocalStorage</button>
+    <div id="output"></div>
+    
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            output.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+        
+        function createTestData() {
+            try {
+                const testModels = [
+                    {
+                        "id": "test-model-1",
+                        "name": "GPT-3.5 Turbo",
+                        "provider": "openai",
+                        "baseUrl": "https://api.openai.com/v1",
+                        "apiKey": "sk-test",
+                        "modelId": "gpt-3.5-turbo",
+                        "maxConcurrency": 16
+                    }
+                ];
+
+                const testDataset = {
+                    "id": "test-dataset-1",
+                    "name": "Test Math Questions",
+                    "createdAt": "2025-01-01T10:00:00Z",
+                    "items": [
+                        {
+                            "id": "1",
+                            "input": "What is 2+2?",
+                            "reference": "4"
+                        }
+                    ]
+                };
+
+                const testRun = {
+                    "id": "test-run-1",
+                    "configId": "test-config-1",
+                    "configSnapshot": {
+                        "id": "test-config-1",
+                        "name": "Test Evaluation Run",
+                        "datasetId": "test-dataset-1",
+                        "modelIds": ["test-model-1"],
+                        "metrics": ["EXACT_MATCH"],
+                        "systemPrompt": "You are a helpful assistant.",
+                        "judgeModelId": "",
+                        "customMetricCode": ""
+                    },
+                    "timestamp": "2025-01-01T12:00:00Z",
+                    "status": "running",
+                    "progress": 1,
+                    "total": 1,
+                    "results": [
+                        {
+                            "itemId": "1",
+                            "modelId": "test-model-1",
+                            "input": "What is 2+2?",
+                            "output": "4",
+                            "reference": "4",
+                            "scores": {
+                                "EXACT_MATCH": 1
+                            },
+                            "latencyMs": 1200
+                        }
+                    ]
+                };
+
+                localStorage.setItem('models', JSON.stringify(testModels));
+                localStorage.setItem('datasets', JSON.stringify([testDataset]));
+                localStorage.setItem('runs', JSON.stringify([testRun]));
+                
+                log('Test data created successfully!');
+                log('Now navigate to: <a href="/results" target="_blank">Results Page</a>');
+                
+            } catch (error) {
+                log('Error: ' + error.message);
+            }
+        }
+        
+        function checkLocalStorage() {
+            try {
+                const models = localStorage.getItem('models');
+                const datasets = localStorage.getItem('datasets');
+                const runs = localStorage.getItem('runs');
+                
+                log('Models: ' + (models ? models.length + ' chars' : 'null'));
+                log('Datasets: ' + (datasets ? datasets.length + ' chars' : 'null'));
+                log('Runs: ' + (runs ? runs.length + ' chars' : 'null'));
+                
+                if (runs) {
+                    const runsData = JSON.parse(runs);
+                    log('Number of runs: ' + runsData.length);
+                    if (runsData.length > 0) {
+                        log('First run status: ' + runsData[0].status);
+                        log('First run progress: ' + runsData[0].progress + '/' + runsData[0].total);
+                    }
+                }
+            } catch (error) {
+                log('Error checking localStorage: ' + error.message);
+            }
+        }
+        
+        function clearLocalStorage() {
+            localStorage.removeItem('models');
+            localStorage.removeItem('datasets');
+            localStorage.removeItem('runs');
+            log('LocalStorage cleared!');
+        }
+        
+        // Check on load
+        checkLocalStorage();
+    </script>
+</body>
+</html>

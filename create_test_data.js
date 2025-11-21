@@ -1,0 +1,101 @@
+// Create test data for the Results page
+const testModels = [
+    {
+        "id": "test-model-1",
+        "name": "GPT-3.5 Turbo",
+        "provider": "openai",
+        "baseUrl": "https://api.openai.com/v1",
+        "apiKey": "sk-test",
+        "modelId": "gpt-3.5-turbo",
+        "maxConcurrency": 16
+    },
+    {
+        "id": "test-model-2", 
+        "name": "GPT-4",
+        "provider": "openai",
+        "baseUrl": "https://api.openai.com/v1",
+        "apiKey": "sk-test",
+        "modelId": "gpt-4",
+        "maxConcurrency": 8
+    }
+];
+
+const testDataset = {
+    "id": "test-dataset-1",
+    "name": "Test Math Questions",
+    "createdAt": "2025-01-01T10:00:00Z",
+    "items": [
+        {
+            "id": "1",
+            "input": "What is 2+2?",
+            "reference": "4"
+        },
+        {
+            "id": "2", 
+            "input": "What is 5*3?",
+            "reference": "15"
+        },
+        {
+            "id": "3",
+            "input": "What is 10-7?",
+            "reference": "3"
+        }
+    ]
+};
+
+const testRun = {
+    "id": "test-run-1",
+    "configId": "test-config-1",
+    "configSnapshot": {
+        "id": "test-config-1",
+        "name": "Test Evaluation Run",
+        "datasetId": "test-dataset-1",
+        "modelIds": ["test-model-1", "test-model-2"],
+        "metrics": ["EXACT_MATCH", "LLM_JUDGE"],
+        "systemPrompt": "You are a helpful assistant. Please answer the user's query accurately.",
+        "judgeModelId": "test-model-1",
+        "customMetricCode": ""
+    },
+    "timestamp": "2025-01-01T12:00:00Z",
+    "status": "running",
+    "progress": 2,
+    "total": 6,
+    "results": [
+        {
+            "itemId": "1",
+            "modelId": "test-model-1",
+            "input": "What is 2+2?",
+            "output": "4",
+            "reference": "4",
+            "scores": {
+                "EXACT_MATCH": 1,
+                "LLM_JUDGE": 9
+            },
+            "latencyMs": 1200
+        },
+        {
+            "itemId": "2",
+            "modelId": "test-model-1",
+            "input": "What is 5*3?",
+            "output": "15",
+            "reference": "15",
+            "scores": {
+                "EXACT_MATCH": 1,
+                "LLM_JUDGE": 8
+            },
+            "latencyMs": 1500
+        }
+    ]
+};
+
+// Save to localStorage
+localStorage.setItem('models', JSON.stringify(testModels));
+localStorage.setItem('datasets', JSON.stringify([testDataset]));
+localStorage.setItem('runs', JSON.stringify([testRun]));
+
+console.log('Test data created successfully!');
+console.log('Models:', testModels);
+console.log('Datasets:', [testDataset]);
+console.log('Runs:', [testRun]);
+
+alert('Test data created! Refresh the Results page to see the evaluation progress.');

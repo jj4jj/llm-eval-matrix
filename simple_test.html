@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Test</title>
+</head>
+<body>
+    <h1>Simple LocalStorage Test</h1>
+    <button onclick="testLocalStorage()">Test LocalStorage</button>
+    <div id="output"></div>
+    
+    <script>
+        function testLocalStorage() {
+            const output = document.getElementById('output');
+            
+            try {
+                // Test basic localStorage functionality
+                localStorage.setItem('test', 'hello');
+                const value = localStorage.getItem('test');
+                
+                output.innerHTML = `
+                    <p>localStorage test: ${value}</p>
+                    <p>localStorage working: ${value === 'hello'}</p>
+                `;
+                
+                // Now create the actual test data
+                const testRun = {
+                    "id": "test-run-1",
+                    "configId": "test-config-1",
+                    "configSnapshot": {
+                        "id": "test-config-1",
+                        "name": "Test Evaluation Run",
+                        "datasetId": "test-dataset-1",
+                        "modelIds": ["test-model-1"],
+                        "metrics": ["EXACT_MATCH"],
+                        "systemPrompt": "You are a helpful assistant.",
+                        "judgeModelId": "",
+                        "customMetricCode": ""
+                    },
+                    "timestamp": "2025-01-01T12:00:00Z",
+                    "status": "running",
+                    "progress": 1,
+                    "total": 1,
+                    "results": [
+                        {
+                            "itemId": "1",
+                            "modelId": "test-model-1",
+                            "input": "What is 2+2?",
+                            "output": "4",
+                            "reference": "4",
+                            "scores": {
+                                "EXACT_MATCH": 1
+                            },
+                            "latencyMs": 1200
+                        }
+                    ]
+                };
+
+                localStorage.setItem('runs', JSON.stringify([testRun]));
+                
+                output.innerHTML += `
+                    <p>Test run data created!</p>
+                    <p><a href="/results" target="_blank">Go to Results Page</a></p>
+                `;
+                
+            } catch (error) {
+                output.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

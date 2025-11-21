@@ -54,7 +54,8 @@ export const Models: React.FC = () => {
         provider: newModel.provider as any,
         baseUrl: newModel.baseUrl,
         apiKey: newModel.apiKey,
-        modelId: newModel.modelId
+        modelId: newModel.modelId,
+        maxConcurrency: newModel.maxConcurrency || 16
     });
     
     // Provide visual feedback or simply clear the relevant fields
@@ -146,6 +147,19 @@ export const Models: React.FC = () => {
                     <p className="text-xs text-slate-400 mt-1">Optional. Defaults to Model ID.</p>
                 </div>
 
+                <div>
+                    <label className="block text-sm font-medium text-slate-700">Max Concurrency</label>
+                    <input 
+                        type="number" 
+                        min="1"
+                        max="100"
+                        className="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 border"
+                        value={newModel.maxConcurrency || 16}
+                        onChange={e => setNewModel({...newModel, maxConcurrency: parseInt(e.target.value) || 16})}
+                    />
+                    <p className="text-xs text-slate-400 mt-1">Maximum parallel API requests (1-100)</p>
+                </div>
+
                 <button 
                     onClick={handleAddModel}
                     className="w-full bg-primary hover:bg-blue-700 text-white py-2 px-4 rounded font-bold transition"
@@ -169,6 +183,7 @@ export const Models: React.FC = () => {
                             <div className="text-sm text-slate-500 space-y-1">
                                 <p><span className="font-semibold">ID:</span> {m.modelId}</p>
                                 <p><span className="font-semibold">Provider:</span> {m.provider}</p>
+                                <p><span className="font-semibold">Concurrency:</span> {m.maxConcurrency || 16}</p>
                                 <p className="text-xs text-slate-400 truncate max-w-md">{m.baseUrl}</p>
                             </div>
                         </div>
